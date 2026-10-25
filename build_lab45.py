@@ -419,8 +419,8 @@ def generate_lab4(output_path="output/Lab4.docx"):
 
         (30, "Cho biết dự án nào có tổng số giờ làm là ít nhất. Thông tin yêu cầu: mã dự án, tên dự án, tổng số giờ làm",
          "Find project with least total work hours. Required: proNum, proName, totalHours",
-         "TOP 1 WITH TIES ordered by SUM(workHours) ASC.",
-         "SELECT TOP 1 WITH TIES p.proNum, p.proName, SUM(w.workHours) AS totalHours\nFROM tblProject p\nINNER JOIN tblWorksOn w ON p.proNum = w.proNum\nGROUP BY p.proNum, p.proName\nORDER BY totalHours ASC;"),
+         "LEFT JOIN so projects with no work hours count as 0, TOP 1 WITH TIES ordered by ISNULL(SUM(workHours), 0) ASC.",
+         "SELECT TOP 1 WITH TIES p.proNum, p.proName, ISNULL(SUM(w.workHours), 0) AS totalHours\nFROM tblProject p\nLEFT JOIN tblWorksOn w ON p.proNum = w.proNum\nGROUP BY p.proNum, p.proName\nORDER BY ISNULL(SUM(w.workHours), 0) ASC;"),
 
         # 31-40
         (31, "Cho biết dự án nào có tổng số giờ làm là nhiều nhất. Thông tin yêu cầu: mã dự án, tên dự án, tổng số giờ làm",
