@@ -1,0 +1,25 @@
+THƯ MỤC BÀI TẬP DBI202 - LAB 4 & LAB 5 (ĐỊNH DẠNG .SQL)
+Sinh viên: Huỳnh Hoàng Siêu
+MSSV: QE210005
+Lớp: SE20D
+
+DANH SÁCH FILE:
+1. Lab4.sql: 
+   - Tập lệnh truy vấn T-SQL gồm 52 câu truy vấn trên CSDL CompanyDB (FUH_COMPANY).
+   - Tên cột được đặt bí danh tiếng Việt trực quan trong ngoặc vuông [ ... ].
+   - Xử lý triệt để các bẫy logic: fan-out (Q51), NOT EXISTS an toàn với NULL (Q41, Q43, Q44), DATEADD tính tuổi sinh học chính xác (Q8, Q13), LEFT JOIN đếm thực thể 0 (Q16, Q28, Q32,...).
+
+2. Lab5.sql:
+   - Phần 1: Script DDL tạo Database ABCCompany và 18 dòng INSERT dữ liệu mẫu chuẩn của giáo trình.
+   - Phần 2: Đầy đủ 6 Task lập trình CSDL với tiền tố QE210005_:
+     + Task 1: Hàm Scalar QE210005_Func1 (@mavt)
+     + Task 2: Hàm Scalar QE210005_Func2 (@MaHD)
+     + Task 3: Thủ tục QE210005_Proc1 (@makh, @diachi)
+     + Task 4: Thủ tục QE210005_ProcAddItem (thêm mặt hàng, trừ kho, transaction an toàn)
+     + Task 5: Trigger QE210005_Trig1 tự động cập nhật cột Tongtien trong HOADON
+     + Task 6: Khung nhìn QE210005_View1 trích xuất khách hàng mua Gạch Ống
+
+HƯỚNG DẪN THỰC THI:
+- Mở SQL Server Management Studio (SSMS) hoặc Azure Data Studio.
+- Với Lab 4: Đảm bảo đã Restore database CompanyDB (từ file FUH_COMPANY.bak), mở Lab4.sql và nhấn Execute (F5).
+- Với Lab 5: Mở Lab5.sql và nhấn Execute (F5), script sẽ tự động tạo database ABCCompany và các hàm/thủ tục.

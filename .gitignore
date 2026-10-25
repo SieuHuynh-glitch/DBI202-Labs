@@ -19,3 +19,8 @@ ehthumbs.db
 scratch/
 scratch_*.txt
 scratch_*.png
+
+# SQL Server Database Files
+*.mdf
+*.ldf
+mau/CompanyDB/
