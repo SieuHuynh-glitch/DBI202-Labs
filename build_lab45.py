@@ -307,8 +307,8 @@ def generate_lab4(output_path="output/Lab4.docx"):
 
         (8, "Cho biết những người phụ thuộc trên 18 tuổi. Thông tin yêu cầu: tên, ngày tháng năm sinh của người phụ thuộc, tên nhân viên phụ thuộc vào.",
          "Find dependents older than 18 years old. Required: depName, depBirthdate, empName",
-         "Join tblDependent and tblEmployee using DATEDIFF on depBirthdate.",
-         "SELECT d.depName, d.depBirthdate, e.empName\nFROM tblDependent d\nINNER JOIN tblEmployee e ON d.empSSN = e.empSSN\nWHERE DATEDIFF(YEAR, d.depBirthdate, GETDATE()) > 18;"),
+         "Join tblDependent and tblEmployee; a dependent is older than 18 when the 18th birthday has already passed: DATEADD(YEAR, 18, depBirthdate) < GETDATE(). (DATEDIFF(YEAR, ...) only subtracts calendar years and ignores month/day, so it gives wrong ages.)",
+         "SELECT d.depName, d.depBirthdate, e.empName\nFROM tblDependent d\nINNER JOIN tblEmployee e ON d.empSSN = e.empSSN\nWHERE DATEADD(YEAR, 18, d.depBirthdate) < GETDATE();"),
 
         (9, "Cho biết những người phụ thuộc là nam giới. Thông tin yêu cầu: tên, ngày tháng năm sinh của người phụ thuộc, tên nhân viên phụ thuộc vào",
          "Find male dependents. Required: depName, depBirthdate, empName",
@@ -333,8 +333,8 @@ def generate_lab4(output_path="output/Lab4.docx"):
 
         (13, "Cho biết những người phụ thuộc trên 18 tuổi, của nhân viên thuộc phòng ban có tên: Phòng Nghiên cứu và phát triển. Thông tin yêu cầu: tên nhân viên, tên người phụ thuộc, mối liên hệ",
          "Find dependents over 18 of employees in 'Phòng Nghiên cứu và phát triển'. Required: empName, depName, depRelationship",
-         "Filter by department name and DATEDIFF(YEAR, depBirthdate, GETDATE()) > 18.",
-         "SELECT e.empName, d.depName, d.depRelationship\nFROM tblEmployee e\nINNER JOIN tblDepartment dep ON e.depNum = dep.depNum\nINNER JOIN tblDependent d ON e.empSSN = d.empSSN\nWHERE dep.depName = N'Phòng Nghiên cứu và phát triển'\n  AND DATEDIFF(YEAR, d.depBirthdate, GETDATE()) > 18;"),
+         "Filter by department name and DATEADD(YEAR, 18, depBirthdate) < GETDATE() (18th birthday already passed; DATEDIFF(YEAR) ignores month/day so it is inaccurate).",
+         "SELECT e.empName, d.depName, d.depRelationship\nFROM tblEmployee e\nINNER JOIN tblDepartment dep ON e.depNum = dep.depNum\nINNER JOIN tblDependent d ON e.empSSN = d.empSSN\nWHERE dep.depName = N'Phòng Nghiên cứu và phát triển'\n  AND DATEADD(YEAR, 18, d.depBirthdate) < GETDATE();"),
 
         (14, "Cho biết số lượng người phụ thuộc theo giới tính. Thông tin yêu cầu: giới tính, số lượng người phụ thuộc",
          "Count number of dependents by gender. Required: depSex, count",
@@ -348,8 +348,8 @@ def generate_lab4(output_path="output/Lab4.docx"):
 
         (16, "Cho biết số lượng người phụ thuộc theo mỗi phòng ban. Thông tin yêu cầu: mã phòng ban, tên phòng ban, số lượng người phụ thuộc",
          "Count number of dependents per department. Required: depNum, depName, count",
-         "Join tblDepartment, tblEmployee, tblDependent and GROUP BY depNum, depName.",
-         "SELECT dep.depNum, dep.depName, COUNT(d.depName) AS numberOfDependents\nFROM tblDepartment dep\nINNER JOIN tblEmployee e ON dep.depNum = e.depNum\nINNER JOIN tblDependent d ON e.empSSN = d.empSSN\nGROUP BY dep.depNum, dep.depName;"),
+         "LEFT JOIN tblDepartment, tblEmployee, tblDependent so every department is listed (0 when it has no dependents), COUNT(d.depName) GROUP BY depNum, depName.",
+         "SELECT dep.depNum, dep.depName, COUNT(d.depName) AS numberOfDependents\nFROM tblDepartment dep\nLEFT JOIN tblEmployee e ON dep.depNum = e.depNum\nLEFT JOIN tblDependent d ON e.empSSN = d.empSSN\nGROUP BY dep.depNum, dep.depName;"),
 
         (17, "Cho biết phòng ban nào có số lượng người phụ thuộc là ít nhất. Thông tin yêu cầu: mã phòng ban, tên phòng ban, số lượng người phụ thuộc",
          "Find department with minimum dependents. Required: depNum, depName, count",
@@ -409,8 +409,8 @@ def generate_lab4(output_path="output/Lab4.docx"):
 
         (28, "Cho biết dự án nào có số lượng thành viên là ít nhất. Thông tin yêu cầu: mã dự án, tên dự án, số lượng thành viên",
          "Find project with fewest members. Required: proNum, proName, memberCount",
-         "TOP 1 WITH TIES ordered by COUNT(empSSN) ASC.",
-         "SELECT TOP 1 WITH TIES p.proNum, p.proName, COUNT(w.empSSN) AS numberOfMembers\nFROM tblProject p\nINNER JOIN tblWorksOn w ON p.proNum = w.proNum\nGROUP BY p.proNum, p.proName\nORDER BY numberOfMembers ASC;"),
+         "LEFT JOIN so projects with 0 members are included, TOP 1 WITH TIES ordered by COUNT(empSSN) ASC.",
+         "SELECT TOP 1 WITH TIES p.proNum, p.proName, COUNT(w.empSSN) AS numberOfMembers\nFROM tblProject p\nLEFT JOIN tblWorksOn w ON p.proNum = w.proNum\nGROUP BY p.proNum, p.proName\nORDER BY numberOfMembers ASC;"),
 
         (29, "Cho biết dự án nào có số lượng thành viên là nhiều nhất. Thông tin yêu cầu: mã dự án, tên dự án, số lượng thành viên",
          "Find project with most members. Required: proNum, proName, memberCount",
@@ -430,13 +430,13 @@ def generate_lab4(output_path="output/Lab4.docx"):
 
         (32, "Cho biết số lượng phòng ban làm việc theo mỗi nơi làm việc. Thông tin yêu cầu: tên nơi làm việc, số lượng phòng ban",
          "Find count of departments working per location. Required: locName, departmentCount",
-         "Join tblLocation and tblDepLocation, COUNT(depNum) GROUP BY locName.",
-         "SELECT l.locName, COUNT(dl.depNum) AS numberOfDepartments\nFROM tblLocation l\nINNER JOIN tblDepLocation dl ON l.locNum = dl.locNum\nGROUP BY l.locName;"),
+         "LEFT JOIN tblLocation and tblDepLocation so every location is listed (0 when no department works there), COUNT(dl.depNum) GROUP BY locName.",
+         "SELECT l.locName, COUNT(dl.depNum) AS numberOfDepartments\nFROM tblLocation l\nLEFT JOIN tblDepLocation dl ON l.locNum = dl.locNum\nGROUP BY l.locName;"),
 
         (33, "Cho biết số lượng chỗ làm việc theo mỗi phòng ban. Thông tin yêu cầu: mã phòng ban, tên phòng ban, số lượng chỗ làm việc",
          "Find number of locations per department. Required: depNum, depName, locationCount",
-         "Join tblDepartment and tblDepLocation, COUNT(locNum) GROUP BY depNum, depName.",
-         "SELECT d.depNum, d.depName, COUNT(dl.locNum) AS numberOfLocations\nFROM tblDepartment d\nINNER JOIN tblDepLocation dl ON d.depNum = dl.depNum\nGROUP BY d.depNum, d.depName;"),
+         "LEFT JOIN tblDepartment and tblDepLocation so every department is listed (0 when it has no location), COUNT(dl.locNum) GROUP BY depNum, depName.",
+         "SELECT d.depNum, d.depName, COUNT(dl.locNum) AS numberOfLocations\nFROM tblDepartment d\nLEFT JOIN tblDepLocation dl ON d.depNum = dl.depNum\nGROUP BY d.depNum, d.depName;"),
 
         (34, "Cho biết phòng ban nào có nhiều chỗ làm việc nhất. Thông tin yêu cầu: mã phòng ban, tên phòng ban, số lượng chỗ làm việc",
          "Find department with most locations. Required: depNum, depName, locationCount",
@@ -445,8 +445,8 @@ def generate_lab4(output_path="output/Lab4.docx"):
 
         (35, "Cho biết phòng ban nào có it chỗ làm việc nhất. Thông tin yêu cầu: mã phòng ban, tên phòng ban, số lượng chỗ làm việc",
          "Find department with fewest locations. Required: depNum, depName, locationCount",
-         "TOP 1 WITH TIES ordered by COUNT(locNum) ASC.",
-         "SELECT TOP 1 WITH TIES d.depNum, d.depName, COUNT(dl.locNum) AS numberOfLocations\nFROM tblDepartment d\nINNER JOIN tblDepLocation dl ON d.depNum = dl.depNum\nGROUP BY d.depNum, d.depName\nORDER BY numberOfLocations ASC;"),
+         "LEFT JOIN so departments with 0 locations are included, TOP 1 WITH TIES ordered by COUNT(locNum) ASC.",
+         "SELECT TOP 1 WITH TIES d.depNum, d.depName, COUNT(dl.locNum) AS numberOfLocations\nFROM tblDepartment d\nLEFT JOIN tblDepLocation dl ON d.depNum = dl.depNum\nGROUP BY d.depNum, d.depName\nORDER BY numberOfLocations ASC;"),
 
         (36, "Cho biết địa điểm nào có nhiều phòng ban làm việc nhất. Thông tin yêu cầu: tên nơi làm việc, số lượng phòng ban",
          "Find location with most departments working. Required: locName, departmentCount",
@@ -455,8 +455,8 @@ def generate_lab4(output_path="output/Lab4.docx"):
 
         (37, "Cho biết địa điểm nào có ít phòng ban làm việc nhất. Thông tin yêu cầu: tên nơi làm việc, số lượng phòng ban",
          "Find location with fewest departments working. Required: locName, departmentCount",
-         "TOP 1 WITH TIES ordered by COUNT(depNum) ASC.",
-         "SELECT TOP 1 WITH TIES l.locName, COUNT(dl.depNum) AS numberOfDepartments\nFROM tblLocation l\nINNER JOIN tblDepLocation dl ON l.locNum = dl.locNum\nGROUP BY l.locName\nORDER BY numberOfDepartments ASC;"),
+         "LEFT JOIN so locations with 0 departments are included, TOP 1 WITH TIES ordered by COUNT(depNum) ASC.",
+         "SELECT TOP 1 WITH TIES l.locName, COUNT(dl.depNum) AS numberOfDepartments\nFROM tblLocation l\nLEFT JOIN tblDepLocation dl ON l.locNum = dl.locNum\nGROUP BY l.locName\nORDER BY numberOfDepartments ASC;"),
 
         (38, "Cho biết nhân viên nào có nhiều người phụ thuộc nhất. Thông tin yêu cầu: mã số, họ tên nhân viên, số lượng người phụ thuộc",
          "Find employee with most dependents. Required: empSSN, empName, dependentCount",
@@ -476,8 +476,8 @@ def generate_lab4(output_path="output/Lab4.docx"):
         # 41-52
         (41, "Cho biết phòng ban nào không có người phụ thuộc. Thông tin yêu cầu: mã số phòng ban, tên phòng ban",
          "Find departments where no employee has dependents. Required: depNum, depName",
-         "NOT IN on department numbers of employees who have dependents.",
-         "SELECT dep.depNum, dep.depName\nFROM tblDepartment dep\nWHERE dep.depNum NOT IN (\n    SELECT DISTINCT e.depNum\n    FROM tblEmployee e\n    INNER JOIN tblDependent d ON e.empSSN = d.empSSN\n);"),
+         "NOT EXISTS: no employee of the department has a dependent (NULL-safe, unlike NOT IN when e.depNum can be NULL).",
+         "SELECT dep.depNum, dep.depName\nFROM tblDepartment dep\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM tblEmployee e\n    INNER JOIN tblDependent d ON e.empSSN = d.empSSN\n    WHERE e.depNum = dep.depNum\n);"),
 
         (42, "Cho biết những nhân viên nào chưa hề tham gia vào bất kỳ dự án nào. Thông tin yêu cầu: mã số, tên nhân viên, tên phòng ban của nhân viên",
          "Find employees who have never worked on any project. Required: empSSN, empName, depName",
@@ -486,13 +486,13 @@ def generate_lab4(output_path="output/Lab4.docx"):
 
         (43, "Cho biết phòng ban không có nhân viên nào tham gia (bất kỳ) dự án. Thông tin yêu cầu: mã số phòng ban, tên phòng ban",
          "Find departments with no employees participating in any project. Required: depNum, depName",
-         "NOT IN department numbers associated with employees in tblWorksOn.",
-         "SELECT dep.depNum, dep.depName\nFROM tblDepartment dep\nWHERE dep.depNum NOT IN (\n    SELECT DISTINCT e.depNum\n    FROM tblEmployee e\n    INNER JOIN tblWorksOn w ON e.empSSN = w.empSSN\n);"),
+         "NOT EXISTS: no employee of the department appears in tblWorksOn (NULL-safe).",
+         "SELECT dep.depNum, dep.depName\nFROM tblDepartment dep\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM tblEmployee e\n    INNER JOIN tblWorksOn w ON e.empSSN = w.empSSN\n    WHERE e.depNum = dep.depNum\n);"),
 
         (44, "Cho biết phòng ban không có nhân viên nào tham gia vào dự án có tên là ProjectA. Thông tin yêu cầu: mã số phòng ban, tên phòng ban",
          "Find departments where no employee works on 'ProjectA'. Required: depNum, depName",
-         "Subquery joins employee, workson, project filtering proName = 'ProjectA'.",
-         "SELECT dep.depNum, dep.depName\nFROM tblDepartment dep\nWHERE dep.depNum NOT IN (\n    SELECT DISTINCT e.depNum\n    FROM tblEmployee e\n    INNER JOIN tblWorksOn w ON e.empSSN = w.empSSN\n    INNER JOIN tblProject p ON w.proNum = p.proNum\n    WHERE p.proName = 'ProjectA'\n);"),
+         "NOT EXISTS over employee, workson, project filtering proName = 'ProjectA' (NULL-safe).",
+         "SELECT dep.depNum, dep.depName\nFROM tblDepartment dep\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM tblEmployee e\n    INNER JOIN tblWorksOn w ON e.empSSN = w.empSSN\n    INNER JOIN tblProject p ON w.proNum = p.proNum\n    WHERE e.depNum = dep.depNum\n      AND p.proName = 'ProjectA'\n);"),
 
         (45, "Cho biết số lượng dự án được quản lý theo mỗi phòng ban. Thông tin yêu cầu: mã phòng ban, tên phòng ban, số lượng dự án",
          "Find number of projects managed per department. Required: depNum, depName, projectCount",
@@ -526,8 +526,8 @@ def generate_lab4(output_path="output/Lab4.docx"):
 
         (51, "Cho biết tổng số giờ làm của các nhân viên, mà các nhân viên này có nhiều hơn 3 người phụ thuộc. Thông tin yêu cầu: mã nhân viên, họ tên nhân viên, số lượng người phụ thuộc, tổng số giờ làm",
          "Find total work hours of employees with more than 3 dependents. Required: empSSN, empName, dependentCount, totalHours",
-         "Count distinct dependents > 3, SUM workHours.",
-         "SELECT e.empSSN, e.empName, COUNT(DISTINCT d.depName) AS numberOfDependents, SUM(w.workHours) AS totalHours\nFROM tblEmployee e\nINNER JOIN tblDependent d ON e.empSSN = d.empSSN\nINNER JOIN tblWorksOn w ON e.empSSN = w.empSSN\nGROUP BY e.empSSN, e.empName\nHAVING COUNT(DISTINCT d.depName) > 3;"),
+         "Aggregate dependents and work hours in separate derived tables, then join: joining tblDependent and tblWorksOn directly multiplies the rows and inflates SUM(workHours) by the number of dependents.",
+         "SELECT e.empSSN, e.empName, dc.numberOfDependents, wh.totalHours\nFROM tblEmployee e\nINNER JOIN (SELECT empSSN, COUNT(*) AS numberOfDependents\n            FROM tblDependent\n            GROUP BY empSSN\n            HAVING COUNT(*) > 3) dc ON e.empSSN = dc.empSSN\nINNER JOIN (SELECT empSSN, SUM(workHours) AS totalHours\n            FROM tblWorksOn\n            GROUP BY empSSN) wh ON e.empSSN = wh.empSSN;"),
 
         (52, "Cho biết tổng số giờ làm việc của các nhân viên hiện đang dưới quyền giám sát (bị quản lý bởi) của nhân viên Mai Duy An. Thông tin yêu cầu: mã nhân viên, họ tên nhân viên, tổng số giờ làm",
          "Find total work hours of employees supervised by 'Mai Duy An'. Required: empSSN, empName, totalHours",
@@ -574,7 +574,7 @@ def generate_lab5(output_path="output/Lab5.docx"):
     p_setup = doc.add_paragraph()
     p_setup.add_run("The database ABCCompany manages materials, customers, sales invoices, and line-item details. The complete schema creation script and sample datasets provided by the course are executed below:")
 
-    add_callout(doc, "ABCCompany DDL Schema Definition:",
+    add_callout(doc, "ABCCompany Schema & Sample Data (course-provided script):",
                 "CREATE DATABASE ABCCompany;\n"
                 "GO\n"
                 "USE ABCCompany;\n"
@@ -606,7 +606,45 @@ def generate_lab5(output_path="output/Lab5.docx"):
                 "    SL int,\n"
                 "    KhuyenMai int,\n"
                 "    GiaBan int\n"
-                ");")
+                ");\n\n"
+                "-- Sample data provided by the course\n"
+                "INSERT VATTU VALUES ('VT01', 'XI MANG', 'BAO', 50000, 5000);\n"
+                "INSERT VATTU VALUES ('VT02', 'CAT', 'KHOI', 45000, 50000);\n"
+                "INSERT VATTU VALUES ('VT03', 'GACH ONG', 'VIEN', 120, 800000);\n"
+                "INSERT VATTU VALUES ('VT04', 'GACH THE', 'VIEN', 110, 800000);\n"
+                "INSERT VATTU VALUES ('VT05', 'DA LON', 'KHOI', 25000, 100000);\n"
+                "INSERT VATTU VALUES ('VT06', 'DA NHO', 'KHOI', 33000, 100000);\n"
+                "\n"
+                "INSERT KHACHHANG VALUES ('KH01', 'NGUYEN THI BE', 'TAN BINH', 8457895, 'bnt@yahoo.com');\n"
+                "INSERT KHACHHANG VALUES ('KH02', 'LE HOANG NAM', 'BINH CHANH', 9878987, 'namlehoang @abc.com.vn');\n"
+                "INSERT KHACHHANG VALUES ('KH03', 'TRAN THI CHIEU', 'TAN BINH', 8457895, NULL);\n"
+                "INSERT KHACHHANG VALUES ('KH04', 'MAI THI QUE ANH', 'BINH CHANH ', NULL, NULL);\n"
+                "INSERT KHACHHANG VALUES ('KH05', 'LE VAN SANG', 'QUAN 10', NULL, 'sanglv@hcm.vnn.vn');\n"
+                "INSERT KHACHHANG VALUES ('KH06', 'TRAN HOANG KHAI', 'TAN BINH', 8457897, NULL);\n"
+                "\n"
+                "INSERT HOADON(MaHD, Ngay, MaKH) VALUES ('HD001', '2000-05-12', 'KH01');\n"
+                "INSERT HOADON(MaHD, Ngay, MaKH) VALUES ('HD002', '2000-05-25', 'KH02');\n"
+                "INSERT HOADON(MaHD, Ngay, MaKH) VALUES ('HD003', '2000-05-25', 'KH01');\n"
+                "INSERT HOADON(MaHD, Ngay, MaKH) VALUES ('HD004', '2000-05-25', 'KH04');\n"
+                "INSERT HOADON(MaHD, Ngay, MaKH) VALUES ('HD005', '2000-05-26', 'KH04');\n"
+                "INSERT HOADON(MaHD, Ngay, MaKH) VALUES ('HD006', '2000-05-02', 'KH03');\n"
+                "INSERT HOADON(MaHD, Ngay, MaKH) VALUES ('HD007', '2000-06-22', 'KH04');\n"
+                "INSERT HOADON(MaHD, Ngay, MaKH) VALUES ('HD008', '2000-06-25', 'KH03');\n"
+                "INSERT HOADON(MaHD, Ngay, MaKH) VALUES ('HD009', '2000-08-15', 'KH04');\n"
+                "INSERT HOADON(MaHD, Ngay, MaKH) VALUES ('HD010', '2000-08-30', 'KH01');\n"
+                "\n"
+                "INSERT CHITIETHOADON(MaHD, MaVT, SL, GiaBan) VALUES ('HD001', 'VT01', 5, 52000);\n"
+                "INSERT CHITIETHOADON(MaHD, MaVT, SL, GiaBan) VALUES ('HD001', 'VT05', 10, 30000);\n"
+                "INSERT CHITIETHOADON(MaHD, MaVT, SL, GiaBan) VALUES ('HD002', 'VT03', 10000, 150);\n"
+                "INSERT CHITIETHOADON(MaHD, MaVT, SL, GiaBan) VALUES ('HD003', 'VT02', 20, 55000);\n"
+                "INSERT CHITIETHOADON(MaHD, MaVT, SL, GiaBan) VALUES ('HD004', 'VT03', 50000, 150);\n"
+                "INSERT CHITIETHOADON(MaHD, MaVT, SL, GiaBan) VALUES ('HD004', 'VT04', 20000, 120);\n"
+                "INSERT CHITIETHOADON(MaHD, MaVT, SL, GiaBan) VALUES ('HD005', 'VT05', 10, 30000);\n"
+                "INSERT CHITIETHOADON(MaHD, MaVT, SL, GiaBan) VALUES ('HD006', 'VT04', 10000, 120);\n"
+                "INSERT CHITIETHOADON(MaHD, MaVT, SL, GiaBan) VALUES ('HD007', 'VT04', 20000, 125);\n"
+                "INSERT CHITIETHOADON(MaHD, MaVT, SL, GiaBan) VALUES ('HD008', 'VT01', 100, 55000);\n"
+                "INSERT CHITIETHOADON(MaHD, MaVT, SL, GiaBan) VALUES ('HD009', 'VT02', 25, 48000);\n"
+                "INSERT CHITIETHOADON(MaHD, MaVT, SL, GiaBan) VALUES ('HD010', 'VT01', 25, 57000);")
 
     add_heading_1(doc, "2. Programming Solutions with Student ID: QE210005")
 
@@ -736,67 +774,64 @@ def generate_lab5(output_path="output/Lab5.docx"):
                 "AS\n"
                 "BEGIN\n"
                 "    SET NOCOUNT ON;\n"
+                "    DECLARE @CurrentStock int, @DefaultPrice int;\n"
+                "\n"
+                "    -- 1. Validate input BEFORE the transaction (outside TRY, so RETURN codes are reachable)\n"
+                "    IF @SL IS NULL OR @SL <= 0\n"
+                "    BEGIN\n"
+                "        RAISERROR(N'Error: Quantity must be greater than 0!', 16, 1);\n"
+                "        RETURN -4;\n"
+                "    END;\n"
+                "\n"
+                "    IF NOT EXISTS (SELECT 1 FROM HOADON WHERE MaHD = @MaHD)\n"
+                "    BEGIN\n"
+                "        RAISERROR(N'Error: Invoice %s does not exist!', 16, 1, @MaHD);\n"
+                "        RETURN -1;\n"
+                "    END;\n"
+                "\n"
+                "    SELECT @CurrentStock = SLTon, @DefaultPrice = GiaMua\n"
+                "    FROM VATTU WHERE MaVT = @MaVT;\n"
+                "\n"
+                "    IF @CurrentStock IS NULL\n"
+                "    BEGIN\n"
+                "        RAISERROR(N'Error: Material %s does not exist!', 16, 1, @MaVT);\n"
+                "        RETURN -2;\n"
+                "    END;\n"
+                "\n"
+                "    IF @CurrentStock < @SL\n"
+                "    BEGIN\n"
+                "        RAISERROR(N'Error: Insufficient stock for material %s! Available: %d, Requested: %d', 16, 1, @MaVT, @CurrentStock, @SL);\n"
+                "        RETURN -3;\n"
+                "    END;\n"
+                "\n"
+                "    IF @GiaBan IS NULL\n"
+                "        SET @GiaBan = CAST(@DefaultPrice * 1.15 AS INT); -- Default 15% markup\n"
+                "\n"
+                "    -- 2. Insert/update the line item and deduct stock as ONE atomic transaction\n"
                 "    BEGIN TRY\n"
                 "        BEGIN TRANSACTION;\n"
-                "        \n"
-                "        -- 1. Validate Invoice existence\n"
-                "        IF NOT EXISTS (SELECT 1 FROM HOADON WHERE MaHD = @MaHD)\n"
-                "        BEGIN\n"
-                "            RAISERROR(N'Error: Invoice %s does not exist!', 16, 1, @MaHD);\n"
-                "            ROLLBACK TRANSACTION;\n"
-                "            RETURN -1;\n"
-                "        END;\n"
-                "        \n"
-                "        -- 2. Validate Material existence and Stock sufficiency\n"
-                "        DECLARE @CurrentStock int, @DefaultPrice int;\n"
-                "        SELECT @CurrentStock = SLTon, @DefaultPrice = GiaMua\n"
-                "        FROM VATTU WHERE MaVT = @MaVT;\n"
-                "        \n"
-                "        IF @CurrentStock IS NULL\n"
-                "        BEGIN\n"
-                "            RAISERROR(N'Error: Material %s does not exist!', 16, 1, @MaVT);\n"
-                "            ROLLBACK TRANSACTION;\n"
-                "            RETURN -2;\n"
-                "        END;\n"
-                "        \n"
-                "        IF @CurrentStock < @SL\n"
-                "        BEGIN\n"
-                "            RAISERROR(N'Error: Insufficient stock for material %s! Available: %d, Requested: %d', 16, 1, @MaVT, @CurrentStock, @SL);\n"
-                "            ROLLBACK TRANSACTION;\n"
-                "            RETURN -3;\n"
-                "        END;\n"
-                "        \n"
-                "        IF @GiaBan IS NULL\n"
-                "            SET @GiaBan = CAST(@DefaultPrice * 1.15 AS INT); -- Default 15% markup\n"
-                "            \n"
-                "        -- 3. Insert or Update line item in CHITIETHOADON\n"
+                "\n"
                 "        IF EXISTS (SELECT 1 FROM CHITIETHOADON WHERE MaHD = @MaHD AND MaVT = @MaVT)\n"
-                "        BEGIN\n"
                 "            UPDATE CHITIETHOADON\n"
                 "            SET SL = SL + @SL, GiaBan = @GiaBan, KhuyenMai = @KhuyenMai\n"
                 "            WHERE MaHD = @MaHD AND MaVT = @MaVT;\n"
-                "        END\n"
                 "        ELSE\n"
-                "        BEGIN\n"
                 "            INSERT INTO CHITIETHOADON(MaHD, MaVT, SL, KhuyenMai, GiaBan)\n"
                 "            VALUES (@MaHD, @MaVT, @SL, @KhuyenMai, @GiaBan);\n"
-                "        END;\n"
-                "        \n"
-                "        -- 4. Deduct inventory from VATTU\n"
+                "\n"
                 "        UPDATE VATTU\n"
                 "        SET SLTon = SLTon - @SL\n"
                 "        WHERE MaVT = @MaVT;\n"
-                "        \n"
+                "\n"
                 "        COMMIT TRANSACTION;\n"
-                "        PRINT N'Success: Added material ' + @MaVT + N' to invoice ' + @MaHD;\n"
-                "        RETURN 0;\n"
                 "    END TRY\n"
                 "    BEGIN CATCH\n"
                 "        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;\n"
-                "        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE();\n"
-                "        RAISERROR(@ErrMsg, 16, 1);\n"
-                "        RETURN -99;\n"
-                "    END CATCH\n"
+                "        THROW; -- re-raise the original error\n"
+                "    END CATCH;\n"
+                "\n"
+                "    PRINT N'Success: Added material ' + @MaVT + N' to invoice ' + @MaHD;\n"
+                "    RETURN 0;\n"
                 "END;\n"
                 "GO",
                 bg_hex=HEX_LIGHT_BLUE, border_color="003366")
